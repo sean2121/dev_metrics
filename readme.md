@@ -20,9 +20,13 @@ This example displays metrics for pull requests during a specific period.
 
 
 ## Installation
-
-### RubyGem
-A RubyGem is a package (or library) of Ruby code that can be distributed and shared. Gems are used to extend the functionality of Ruby applications.
+### Ruby 
+Make sure Ruby is installed on your system by running the following command to check the version
+```bash
+ruby -v
+```
+### RubyGems
+A RubyGems is a package (or library) of Ruby code that can be distributed and shared. Gems are used to extend the functionality of Ruby applications.
 
 ### Install via gem 
 ```bash
