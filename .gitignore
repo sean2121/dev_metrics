@@ -1,0 +1,6 @@
+# Ignore .idea directory (for JetBrains IDEs)
+.idea/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
