@@ -33,6 +33,8 @@ require 'dev_metrics'
 DevMetrics.configure do |c|
   c.access_token = "your_github_access_token" # required
   c.repo_name = "your_github_username/your_repository" # required
+  c.bot_accounts = %w(bot) # optional. Account names that you don't want to include in the report.
+  c.fix_branch_names = %w(fix hotfix rollback) # optional. Used to calculate the Correction Rate.
 end
 ```
 

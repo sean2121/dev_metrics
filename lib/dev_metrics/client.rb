@@ -3,7 +3,6 @@ require 'uri'
 require 'date'
 require 'json'
 require 'time'
-require 'pry'
 
 module DevMetrics
   class Client
@@ -14,6 +13,7 @@ module DevMetrics
       @repo_name = config.repo_name
       @bot_accounts = config.bot_accounts || []
       @access_token = config.access_token || ENV.fetch('GITHUB_ACCESS_TOKEN', nil)
+      @fix_branch_names = config.fix_branch_names || %w(hotfix fix rollback)
     end
 
     def process(period: Date.today)
@@ -58,7 +58,7 @@ module DevMetrics
     end
 
     def count_correction_prs(prs)
-      prs.count { |pr| pr.dig('node', 'headRefName')&.match?(/^hotfix|fix|rollback/) }
+      prs.count { |pr| pr.dig('node', 'headRefName')&.match?(/^#{@fix_branch_names}/) }
     end
 
     def calculate_lead_time(prs)
