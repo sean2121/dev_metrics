@@ -58,6 +58,7 @@ end
 2. Running the Report
 You can generate a report by specifying the period and the format class.
 ```ruby
+# client.rb
 # Generate a Markdown report
 DevMetrics.run(period: "2024-01", format: DevMetrics::MarkdownFormat)
 
@@ -66,9 +67,9 @@ DevMetrics.run(period: "2024-01", format: DevMetrics::MarkdownFormat)
 ```
 
 ## Understanding the Code
-`require 'dev_metrics'`: This line loads the DevMetrics gem so that you can use its functionality in your script.
-`DevMetrics.configure:` This block allows you to set up the necessary configurations like access_token and repo_name.
-`DevMetrics.run:` This method generates the report. You specify the period you want to analyze and the format of the report (e.g., Markdown).
+- `require 'dev_metrics'`: This line loads the DevMetrics gem so that you can use its functionality in your script.
+- `DevMetrics.configure:` This block allows you to set up the necessary configurations like access_token and repo_name.
+- `DevMetrics.run:` This method generates the report. You specify the period you want to analyze and the format of the report (e.g., Markdown).
 
 
 ## Running Your Ruby Script
