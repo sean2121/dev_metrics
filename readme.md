@@ -48,7 +48,7 @@ bundle install
 Before using DevMetrics, you need to configure it using the configure method.
 
 ```ruby
-# client.rb
+# dev_metrics_test.rb
 require 'dev_metrics'
 
 DevMetrics.configure do |c|
@@ -62,7 +62,7 @@ end
 2. Running the Report
 You can generate a report by specifying the period and the format class.
 ```ruby
-# client.rb
+# dev_metrics_test.rb
 # Generate a Markdown report
 DevMetrics.run(period: "2024-01", format: DevMetrics::MarkdownFormat)
 

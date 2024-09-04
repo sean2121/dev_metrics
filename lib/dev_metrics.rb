@@ -23,7 +23,7 @@ module DevMetrics
   end
 
   def self.run(period:, format:)
-    markdown_processor = format.new(@configuration)
-    markdown_processor.process(period: period)
+    client = format.new(@configuration)
+    client.process(period: period)
   end
 end
