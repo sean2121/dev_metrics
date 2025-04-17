@@ -1,4 +1,5 @@
 # DevMetrics
+![dev_metrics_small (1)](https://github.com/user-attachments/assets/75c73232-6bff-479c-bca0-e0bf9a03b3ae)
 
 DevMetrics is a powerful RubyGem designed to elevate your development workflow by automatically collecting and analyzing repository metrics. With DevMetrics, you can easily generate detailed reports in Markdown or HTML, helping you stay on top of your project's health and progress.
 
@@ -6,6 +7,8 @@ DevMetrics is a powerful RubyGem designed to elevate your development workflow b
 - Insightful Analytics: Get clear metrics on pull requests, correction rates, lead times, and more.
 - Customizable Reports: Tailor the data to your needs with flexible configuration options
 - Easy Integration: Seamlessly integrates with your GitHub repositories, providing actionable insights with minimal setup.
+
+Built on DORA’s Four Key Metrics: DevMetrics aligns with industry-standard DevOps Research and Assessment (DORA) metrics—deployment frequency, lead time for changes, change failure rate, and time to restore service—to help you measure and improve engineering performance.
 
 ## Example Output Format
 
@@ -20,7 +23,7 @@ This example displays metrics for pull requests during a specific period.
 
 
 ## Installation
-### Ruby 
+### Ruby
 Make sure Ruby is installed on your system by running the following command to check the version
 ```bash
 ruby -v
@@ -28,7 +31,7 @@ ruby -v
 ### RubyGems
 A RubyGems is a package (or library) of Ruby code that can be distributed and shared. Gems are used to extend the functionality of Ruby applications.
 
-### Install via gem 
+### Install via gem
 ```bash
 gem install dev_metrics
 ```
@@ -45,10 +48,10 @@ bundle install
 
 ## Usage
 1. Configuration
-Before using DevMetrics, you need to configure it using the configure method.
+   Before using DevMetrics, you need to configure it using the configure method.
 
 ```ruby
-# dev_metrics_test.rb
+# client.rb
 require 'dev_metrics'
 
 DevMetrics.configure do |c|
@@ -60,9 +63,9 @@ end
 ```
 
 2. Running the Report
-You can generate a report by specifying the period and the format class.
+   You can generate a report by specifying the period and the format class.
 ```ruby
-# dev_metrics_test.rb
+# client.rb
 # Generate a Markdown report
 DevMetrics.run(period: "2024-01", format: DevMetrics::MarkdownFormat)
 
