@@ -3,6 +3,7 @@ require 'uri'
 require 'date'
 require 'json'
 require 'time'
+require_relative 'query_builder'
 
 module DevMetrics
   class Client
@@ -18,10 +19,17 @@ module DevMetrics
 
     def process(period: Date.today)
       uri = URI.parse(GITHUB_GRAPHQL_API)
-      request = build_request(uri, period)
-      response = execute_request(uri, request)
+      builder = DevMetrics::QueryBuilder.new(@repo_name)
 
-      pr_data = parse_response(response)
+      auth_request = build_request(uri, builder.access_auth_check)
+      auth_response = execute_request(uri, auth_request)
+      check_auth_errors!(auth_response)
+
+      pr_request = build_request(uri, builder.pull_requests_for(period))
+      pr_response = execute_request(uri, pr_request)
+
+      pr_data = parse_response(pr_response)
+
       filtered_prs = exclude_bots(pr_data)
       correction_pr_count = count_correction_prs(filtered_prs)
 
@@ -31,11 +39,10 @@ module DevMetrics
 
     private
 
-    def build_request(uri, period)
+    def build_request(uri, body)
       request = Net::HTTP::Post.new(uri)
-      request["Authorization"] = "Bearer #{@access_token}"
-      request.body = graphql_query(period)
-
+      request['Authorization'] = "Bearer #{@access_token}"
+      request.body = body
       request
     end
 
@@ -44,12 +51,21 @@ module DevMetrics
       Net::HTTP.start(uri.hostname, uri.port, options) { |http| http.request(request) }
     end
 
+    def check_auth_errors!(response)
+      if response.code.to_i == 403 || response.body.include?('FORBIDDEN')
+        raise "Access denied: ensure the access token has permission to access #{@repo_name}"
+      end
+    end
+
     def parse_response(response)
       unless response.is_a?(Net::HTTPSuccess)
         raise "Failed to fetch data: #{response.message} (#{response.code})"
       end
 
-      JSON.parse(response.body).dig('data', 'search', 'edges')
+      data = JSON.parse(response.body)
+      raise "GraphQL error: #{data['errors']}" if data['errors']
+
+      data.dig('data', 'search', 'edges') || []
     end
 
     def exclude_bots(prs)
@@ -58,7 +74,7 @@ module DevMetrics
     end
 
     def count_correction_prs(prs)
-      prs.count { |pr| pr.dig('node', 'headRefName')&.match?(/^#{@fix_branch_names}/) }
+      prs.count { |pr| pr.dig('node', 'headRefName')&.match?(/^#{@fix_branch_names.join('|')}/) }
     end
 
     def calculate_lead_time(prs)
@@ -79,30 +95,6 @@ module DevMetrics
 
       days, remaining = seconds.divmod(86_400)
       Time.at(remaining).utc.strftime("#{days}d %H:%M:%S")
-    end
-
-    def graphql_query(period)
-      query_string = <<-GRAPHQL
-    {
-      search(query: "repo:#{@repo_name} is:pr merged:#{period}", type: ISSUE, first: 100) {
-        edges {
-          node {
-            ... on PullRequest {
-              url
-              title
-              author {
-                login
-              }
-              mergedAt
-              headRefName
-              publishedAt
-            }
-          }
-        }
-      }
-    }
-      GRAPHQL
-      { "query" => query_string.strip }.to_json
     end
 
     def output_metrics(period, prs, correction_pr_count)
