@@ -27,6 +27,9 @@ module DevMetrics
                 mergedAt
                 headRefName
                 publishedAt
+                additions
+                deletions
+                changedFiles
               }
             }
           }

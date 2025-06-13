@@ -4,6 +4,7 @@ require 'date'
 require 'json'
 require 'time'
 require_relative 'query_builder'
+require_relative 'metrics_calc'
 
 module DevMetrics
   class Client
@@ -30,10 +31,7 @@ module DevMetrics
 
       pr_data = parse_response(pr_response)
 
-      filtered_prs = exclude_bots(pr_data)
-      correction_pr_count = count_correction_prs(filtered_prs)
-
-      output_metrics(period, filtered_prs, correction_pr_count)
+      output_metrics(DevMetrics::MetricsCalc.new(pr_data, period, @bot_accounts, @fix_branch_names))
       puts "Done. Please check the file #{output_filename}"
     end
 
@@ -68,49 +66,8 @@ module DevMetrics
       data.dig('data', 'search', 'edges') || []
     end
 
-    def exclude_bots(prs)
-      return prs if @bot_accounts.empty?
-      prs.reject { |pr| @bot_accounts.include?(pr.dig('node', 'author', 'login')) }
-    end
-
-    def count_correction_prs(prs)
-      prs.count { |pr| pr.dig('node', 'headRefName')&.match?(/^#{@fix_branch_names.join('|')}/) }
-    end
-
-    def calculate_lead_time(prs)
-      return "0d 00:00:00" if prs.empty?
-
-      times = prs.map do |pr|
-        merged_at = Time.parse(pr.dig('node', 'mergedAt'))
-        created_at = Time.parse(pr.dig('node', 'publishedAt'))
-        merged_at - created_at
-      end
-
-      average_time = times.sum.fdiv(times.size)
-      format_time(average_time)
-    end
-
-    def format_time(seconds)
-      return "0d 00:00:00" if seconds.nan? || seconds.infinite?
-
-      days, remaining = seconds.divmod(86_400)
-      Time.at(remaining).utc.strftime("#{days}d %H:%M:%S")
-    end
-
-    def output_metrics(period, prs, correction_pr_count)
-      formatted_data = format_data(period, prs, correction_pr_count)
-
-      File.open(output_filename, 'a') do |file|
-        file.write(formatted_data)
-      end
-    end
-
-    def format_data(period, prs, correction_pr_count)
-      raise NotImplementedError, "This method must be implemented by subclasses."
-    end
-
-    def output_filename
-      raise NotImplementedError, "This method must be implemented by subclasses."
+    def output_metrics(metrics_calc)
+      raise NotImplementedError, "Subclasses must implement the method."
     end
   end
 end

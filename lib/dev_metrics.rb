@@ -1,4 +1,5 @@
 require_relative 'dev_metrics/markdown'
+require_relative 'dev_metrics/version'
 
 module DevMetrics
   class Config

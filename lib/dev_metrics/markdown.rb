@@ -5,21 +5,28 @@ module DevMetrics
 
     private
 
-    def format_data(period, prs, correction_pr_count)
+    def data_format(metrics_calc)
       output = ""
-      output << "| #{period} | #{prs.count} | #{correction_pr_count} | "
-      output << "#{correction_calc(correction_pr_count, prs)}% | "
-      output << "#{calculate_lead_time(prs)} | "
-      output << "[PRs for #{period}](https://github.com/#{@repo_name}/pulls?q=is%3Apr+merged%3A#{period}) |\n"
+
+      output << "| #{metrics_calc.period} | #{metrics_calc.prs_length} | #{metrics_calc.rollback_prs_length} | "
+      output << "#{metrics_calc.failure_rate}% | "
+      output << "#{metrics_calc.lead_time} | "
+      output << "#{metrics_calc.average_changed_line_size} |"
+      output << "#{metrics_calc.average_changed_file} | "
+      output << "[PRs for #{metrics_calc.period}](https://github.com/#{@repo_name}/pulls?q=is%3Apr+merged%3A#{metrics_calc.period}) |\n"
       output
     end
 
-    def correction_calc(correction_pr_count, prs)
-      return "-" if prs.empty?
-      ((correction_pr_count.to_f / prs.count) * 100).round(2)
-    end
     def output_filename
       "metrics_report.md"
+    end
+
+    def output_metrics(metrics_calc)
+      formatted_data = data_format(metrics_calc)
+
+      File.open(output_filename, 'a') do |file|
+        file.write(formatted_data)
+      end
     end
   end
 end
