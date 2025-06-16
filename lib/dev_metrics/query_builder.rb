@@ -22,20 +22,36 @@ module DevMetrics
             node {
               ... on PullRequest {
                 url
+                number
                 title
-                author { login }
+                body
+                state
+                createdAt
+                updatedAt
+                closedAt
                 mergedAt
+                author { login }
+                assignees(first: 10) { nodes { login } }
+                labels(first: 10) { nodes { name } }
                 headRefName
-                publishedAt
+                baseRefName
                 additions
                 deletions
                 changedFiles
+                commits { totalCount }
+                reviews { totalCount }
+                reviewRequests { totalCount }
+                mergedBy { login }
+                milestone { title }
+                isDraft
+                mergeable
+                mergeCommit { oid }
               }
             }
           }
         }
       }
-    GRAPHQL
+      GRAPHQL
     end
 
     private
