@@ -1,7 +1,7 @@
 # DevMetrics
-![dev_metrics_small (1)](https://github.com/user-attachments/assets/75c73232-6bff-479c-bca0-e0bf9a03b3ae)
-
 DevMetrics is a powerful RubyGem designed to elevate your development workflow by automatically collecting and analyzing repository metrics. With DevMetrics, you can easily generate detailed reports in Markdown or HTML, helping you stay on top of your project's health and progress.
+
+![dev_metrics_small (1)](https://github.com/user-attachments/assets/75c73232-6bff-479c-bca0-e0bf9a03b3ae)
 
 ## Why Choose DevMetrics?
 - Insightful Analytics: Get clear metrics on pull requests, correction rates, lead times, and more.
