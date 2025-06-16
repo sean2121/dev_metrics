@@ -22,26 +22,26 @@ module DevMetrics
     #
     # @return [Integer] Number of rollback PRs.
     def rollback_prs_length
-      @prs.count { |pr| pr.dig('node', 'headRefName')&.match?(/^#{@fix_branch_names.join('|')}/) }
+      @prs.count { |pr| pr.head_ref_name&.match?(/^#{@fix_branch_names.join('|')}/) }
     end
 
-    # Calculates the average lead time for PRs (from creation to merge).
+    # Returns the average lead time for PRs (from creation to merge) as a formatted string.
     #
     # @return [String] Average lead time formatted as "Xd HH:MM:SS".
     def lead_time
       return "0d 00:00:00" if @prs.empty?
 
       times = @prs.map do |pr|
-        merged_at = Time.parse(pr.dig('node', 'mergedAt'))
-        created_at = Time.parse(pr.dig('node', 'publishedAt'))
-        merged_at - created_at
+        merged_at = pr.merged_at
+        created_at = pr.created_at
+        merged_at && created_at ? merged_at - created_at : 0
       end
 
       average_time = times.sum.fdiv(times.size)
       format_time(average_time)
     end
 
-    # Calculates the failure rate (percentage of rollback PRs).
+    # Returns the failure rate (percentage of rollback PRs).
     #
     # @return [String, Float] Percentage of rollback PRs or "-" if no PRs.
     def failure_rate
@@ -49,24 +49,21 @@ module DevMetrics
       ((rollback_prs_length.to_f / @prs.count) * 100).round(2)
     end
 
-    # Calculates the average PR size (additions + deletions).
+    # Returns the average PR size (additions + deletions).
     #
     # @return [Float] Average PR size.
     def average_changed_line_size
       return 0 if @prs.empty?
-      sizes = @prs.map do |pr|
-        node = pr['node']
-        (node['additions'] || 0) + (node['deletions'] || 0)
-      end
+      sizes = @prs.map { |pr| pr.additions + pr.deletions }
       (sizes.sum.to_f / sizes.size).round(2)
     end
 
-    # Calculates the average number of changed files per PR.
+    # Returns the average number of changed files per PR.
     #
     # @return [Float] Average number of changed files.
     def average_changed_file
       return 0 if @prs.empty?
-      files = @prs.map { |pr| pr.dig('node', 'changedFiles').to_i }
+      files = @prs.map(&:changed_files)
       (files.sum.to_f / files.size).round(2)
     end
 
@@ -75,7 +72,7 @@ module DevMetrics
     # @return [Integer] Maximum PR size.
     def max_pr_size
       return 0 if @prs.empty?
-      @prs.map { |pr| (pr['node']['additions'] || 0) + (pr['node']['deletions'] || 0) }.max
+      @prs.map { |pr| pr.additions + pr.deletions }.max
     end
 
     # Returns the minimum PR size (additions + deletions).
@@ -83,19 +80,131 @@ module DevMetrics
     # @return [Integer] Minimum PR size.
     def min_pr_size
       return 0 if @prs.empty?
-      @prs.map { |pr| (pr['node']['additions'] || 0) + (pr['node']['deletions'] || 0) }.min
+      @prs.map { |pr| pr.additions + pr.deletions }.min
+    end
+
+    # Returns the average number of commits per PR.
+    #
+    # @return [Float] Average number of commits.
+    def average_commits_count
+      return 0 if @prs.empty?
+      counts = @prs.map(&:commits_count)
+      (counts.sum.to_f / counts.size).round(2)
+    end
+
+    # Returns the average number of reviews per PR.
+    #
+    # @return [Float] Average number of reviews.
+    def average_reviews_count
+      return 0 if @prs.empty?
+      counts = @prs.map(&:reviews_count)
+      (counts.sum.to_f / counts.size).round(2)
+    end
+
+    # Returns the average number of review requests per PR.
+    #
+    # @return [Float] Average number of review requests.
+    def average_review_requests_count
+      return 0 if @prs.empty?
+      counts = @prs.map(&:review_requests_count)
+      (counts.sum.to_f / counts.size).round(2)
+    end
+
+    # Returns the percentage of PRs that are drafts.
+    #
+    # @return [Float] Percentage of draft PRs.
+    def draft_pr_rate
+      return 0 if @prs.empty?
+      draft_count = @prs.count(&:draft?)
+      ((draft_count.to_f / @prs.size) * 100).round(2)
+    end
+
+    # Returns a hash with label names as keys and their counts as values.
+    #
+    # @return [Hash] Label counts.
+    def label_counts
+      @prs.flat_map(&:labels).compact.tally
+    end
+
+    # Returns a hash with assignee names as keys and their counts as values.
+    #
+    # @return [Hash] Assignee counts.
+    def assignee_counts
+      @prs.flat_map(&:assignees).compact.tally
+    end
+
+    # Returns a hash with milestone titles as keys and their counts as values.
+    #
+    # @return [Hash] Milestone counts.
+    def milestone_counts
+      @prs.map(&:milestone).compact.tally
+    end
+
+    # Returns the average PR age in days (from creation to close, or now if open).
+    #
+    # @return [Float] Average PR age in days.
+    def average_pr_age
+      return 0 if @prs.empty?
+      ages = @prs.map do |pr|
+        closed = pr.closed_at || Time.now
+        created = pr.created_at
+        created && closed ? (closed - created) / 86400.0 : 0
+      end
+      (ages.sum / ages.size).round(2)
+    end
+
+    # Returns the maximum PR age in days.
+    #
+    # @return [Float] Maximum PR age in days.
+    def max_pr_age
+      return 0 if @prs.empty?
+      ages = @prs.map do |pr|
+        closed = pr.closed_at || Time.now
+        created = pr.created_at
+        created && closed ? (closed - created) / 86400.0 : 0
+      end
+      ages.max.round(2)
+    end
+
+    # Returns the minimum PR age in days.
+    #
+    # @return [Float] Minimum PR age in days.
+    def min_pr_age
+      return 0 if @prs.empty?
+      ages = @prs.map do |pr|
+        closed = pr.closed_at || Time.now
+        created = pr.created_at
+        created && closed ? (closed - created) / 86400.0 : 0
+      end
+      ages.min.round(2)
+    end
+
+    # Returns the number of draft PRs.
+    #
+    # @return [Integer] Number of draft PRs.
+    def draft_pr_count
+      @prs.count(&:draft?)
+    end
+
+    # Returns the number of merged PRs.
+    #
+    # @return [Integer] Number of merged PRs.
+    def merged_pr_count
+      @prs.count { |pr| !pr.merged_at.nil? }
+    end
+
+    # Returns the number of closed but unmerged PRs.
+    #
+    # @return [Integer] Number of closed but unmerged PRs.
+    def closed_unmerged_pr_count
+      @prs.count { |pr| pr.closed_at && pr.merged_at.nil? }
     end
 
     private
 
-    # Excludes PRs created by bot accounts.
-    #
-    # @param [Array<Hash>] prs Array of pull request data.
-    # @param [Array<String>, nil] bot_accounts Array of bot account names.
-    # @return [Array<Hash>] PRs excluding those by bot accounts.
     def count_prs_with_excluded_account(prs, bot_accounts)
       return prs if bot_accounts.empty?
-      prs.reject { |pr| bot_accounts.include?(pr.dig('node', 'author', 'login')) }
+      prs.reject { |pr| bot_accounts.include?(pr.author) }
     end
 
     def format_time(seconds)

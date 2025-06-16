@@ -1,5 +1,7 @@
 require_relative 'dev_metrics/markdown'
 require_relative 'dev_metrics/version'
+require_relative 'dev_metrics/client'
+require_relative 'dev_metrics/metrics_calc'
 
 module DevMetrics
   class Config
@@ -23,8 +25,11 @@ module DevMetrics
     yield(configuration)
   end
 
+  # Run: fetch PRs, calculate metrics, and pass to formatter
   def self.run(period:, format:)
-    client = format.new(@configuration)
-    client.process(period: period)
+    client = DevMetrics::Client.new(@configuration)
+    prs = client.fetch(period)
+
+    format.new(prs)
   end
 end

@@ -1,7 +1,7 @@
 require_relative 'client'
 
 module DevMetrics
-  class Markdown < Client
+  class Markdown < FormartBase
 
     private
 
@@ -17,16 +17,17 @@ module DevMetrics
       output
     end
 
-    def output_filename
-      "metrics_report.md"
-    end
-
-    def output_metrics(metrics_calc)
+    def write(metrics_calc)
       formatted_data = data_format(metrics_calc)
 
       File.open(output_filename, 'a') do |file|
         file.write(formatted_data)
       end
+    end
+
+
+    def output_filename
+      "metrics_report.md"
     end
   end
 end

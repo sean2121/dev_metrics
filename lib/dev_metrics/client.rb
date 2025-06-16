@@ -5,6 +5,7 @@ require 'json'
 require 'time'
 require_relative 'query_builder'
 require_relative 'metrics_calc'
+require_relative 'pull_request_wrapper'
 
 module DevMetrics
   class Client
@@ -13,33 +14,42 @@ module DevMetrics
 
     def initialize(config)
       @repo_name = config.repo_name
-      @bot_accounts = config.bot_accounts || []
       @access_token = config.access_token || ENV.fetch('GITHUB_ACCESS_TOKEN', nil)
+      @bot_accounts = config.bot_accounts || []
       @fix_branch_names = config.fix_branch_names || %w(hotfix fix rollback)
     end
 
-    def process(period: Date.today)
+    def fetch(period: Date.today)
       uri = URI.parse(GITHUB_GRAPHQL_API)
       builder = DevMetrics::QueryBuilder.new(@repo_name)
 
-      auth_request = build_request(uri, builder.access_auth_check)
+      token = @access_token
+
+      auth_request = build_request(uri, builder.access_auth_check, token)
       auth_response = execute_request(uri, auth_request)
       check_auth_errors!(auth_response)
 
-      pr_request = build_request(uri, builder.pull_requests_for(period))
+      pr_request = build_request(uri, builder.pull_requests_for(period), token)
       pr_response = execute_request(uri, pr_request)
 
       pr_data = parse_response(pr_response)
+      parsed_pr_data = pr_data.map { |row| DevMetrics::PullRequestWrapper.new(row) }
 
-      output_metrics(DevMetrics::MetricsCalc.new(pr_data, period, @bot_accounts, @fix_branch_names))
-      puts "Done. Please check the file #{output_filename}"
+      DevMetrics::MetricsCalc.new(
+        parsed_pr_data,
+        period,
+        {
+          bot_accounts: @bot_accounts,
+          fix_branch_names: @fix_branch_names
+        }
+      )
     end
 
     private
 
-    def build_request(uri, body)
+    def build_request(uri, body, token)
       request = Net::HTTP::Post.new(uri)
-      request['Authorization'] = "Bearer #{@access_token}"
+      request['Authorization'] = "Bearer #{token}"
       request.body = body
       request
     end
@@ -64,10 +74,6 @@ module DevMetrics
       raise "GraphQL error: #{data['errors']}" if data['errors']
 
       data.dig('data', 'search', 'edges') || []
-    end
-
-    def output_metrics(metrics_calc)
-      raise NotImplementedError, "Subclasses must implement the method."
     end
   end
 end
