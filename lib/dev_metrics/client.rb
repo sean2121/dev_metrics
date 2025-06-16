@@ -38,10 +38,8 @@ module DevMetrics
       DevMetrics::MetricsCalc.new(
         parsed_pr_data,
         period,
-        {
-          bot_accounts: @bot_accounts,
-          fix_branch_names: @fix_branch_names
-        }
+        bot_accounts: @bot_accounts,
+        fix_branch_names: @fix_branch_names
       )
     end
 

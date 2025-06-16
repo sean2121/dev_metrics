@@ -1,10 +1,8 @@
-require_relative 'formatter_helper'
-
 module DevMetrics
   class MetricsCalc
     attr_reader :period
 
-    def initialize(prs, period, bot_accounts, fix_branch_names)
+    def initialize(prs, period, bot_accounts:, fix_branch_names:)
       @prs = prs
       @period = period
       @bot_accounts = bot_accounts || []

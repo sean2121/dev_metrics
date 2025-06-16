@@ -28,7 +28,7 @@ module DevMetrics
   # Run: fetch PRs, calculate metrics, and pass to formatter
   def self.run(period:, format:)
     client = DevMetrics::Client.new(@configuration)
-    prs = client.fetch(period)
+    prs = client.fetch(period: period)
 
     format.new(prs)
   end
