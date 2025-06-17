@@ -7,14 +7,14 @@ require_relative 'query_builder'
 require_relative 'metrics_calc'
 require_relative 'pull_request_wrapper'
 
+
 module DevMetrics
   class Client
     GITHUB_GRAPHQL_API = 'https://api.github.com/graphql'.freeze
-    ACCESS_TOKEN = ENV.fetch('GITHUB_ACCESS_TOKEN', nil)
 
     def initialize(config)
       @repo_name = config.repo_name
-      @access_token = config.access_token || ENV.fetch('GITHUB_ACCESS_TOKEN', nil)
+      @access_token = config.access_token
       @bot_accounts = config.bot_accounts || []
       @fix_branch_names = config.fix_branch_names || %w(hotfix fix rollback)
     end
@@ -22,6 +22,7 @@ module DevMetrics
     def fetch(period: Date.today)
       uri = URI.parse(GITHUB_GRAPHQL_API)
       builder = DevMetrics::QueryBuilder.new(@repo_name)
+
 
       token = @access_token
 

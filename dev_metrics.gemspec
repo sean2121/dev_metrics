@@ -5,5 +5,6 @@ Gem::Specification.new do |spec|
   spec.summary       = "A RubyGem for tracking and analyzing development metrics from various repositories."
   spec.license       = "MIT"
   spec.files         = Dir["lib/**/*.rb"]
+  spec.executables   = ["dev_metrics"]
   spec.require_paths = ["lib"]
 end

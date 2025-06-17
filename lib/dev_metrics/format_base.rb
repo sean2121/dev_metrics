@@ -1,25 +1,36 @@
+require 'yaml'
+
 module DevMetrics
   class FormatBase
 
     attr_reader :metrics_calc
 
-    def initialize(metrics_calc)
+    def initialize(metrics_calc, config_path = "dev_metrics_config.yml")
       @metrics_calc = metrics_calc
-      write
+      @format_config = YAML.load_file(config_path)
+      call
     end
 
     private
 
-    def data_format
-      raise NotImplementedError, "You must implement the data_format method in a subclass"
+    def write; end
+
+    def file_name; end
+
+    def columns
+      @format_config['columns'] || []
     end
 
-    def output_filename
-      raise NotImplementedError, "You must implement the output_filename method in a subclass"
-    end
-
-    def write
-     raise NotImplementedError, "You must implement the write method in a subclass"
+    def build_row
+      columns.map do |column|
+        key = column['key'] || column
+        begin
+          value = @metrics_calc.send(key)
+        rescue NoMethodError
+          value = "No defined for #{key}"
+        end
+        value
+      end
     end
   end
 end
