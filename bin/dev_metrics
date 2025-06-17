@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+# filepath: bin/dev_metrics
+
+require_relative "../lib/dev_metrics"
+
+DevMetrics.run
