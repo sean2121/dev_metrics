@@ -44,7 +44,7 @@ module DevMetrics
       )
     end
 
-    private
+    private 
 
     def build_request(uri, body, token)
       request = Net::HTTP::Post.new(uri)

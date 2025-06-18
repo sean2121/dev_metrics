@@ -4,6 +4,8 @@ require_relative 'dev_metrics/markdown'
 require_relative 'dev_metrics/version'
 require_relative 'dev_metrics/client'
 require_relative 'dev_metrics/metrics_calc'
+require_relative 'dev_metrics/csv'
+require_relative 'dev_metrics/json'
 
 
 module DevMetrics

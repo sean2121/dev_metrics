@@ -4,6 +4,7 @@ module DevMetrics
     def initialize(repo)
       @repo = repo
     end
+
     def access_auth_check
       to_body <<~GRAPHQL
       {
@@ -11,7 +12,7 @@ module DevMetrics
           id
         }
       }
-    GRAPHQL
+      GRAPHQL
     end
 
     def pull_requests_for(period)
@@ -45,7 +46,6 @@ module DevMetrics
                 milestone { title }
                 isDraft
                 mergeable
-                mergeCommit { oid }
               }
             }
           }
