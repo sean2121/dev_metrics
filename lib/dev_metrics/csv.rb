@@ -21,7 +21,6 @@ module DevMetrics
         f.puts columns.map { |col| col['label'] || col }.join(',')
         f.puts build_row.join(',')
       end
-      puts caller
       puts "CSV data written to #{file_name}"
     end
   end
