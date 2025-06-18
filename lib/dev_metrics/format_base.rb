@@ -8,7 +8,6 @@ module DevMetrics
     def initialize(metrics_calc, config_path = "dev_metrics_config.yml")
       @metrics_calc = metrics_calc
       @format_config = YAML.load_file(config_path)
-      call
     end
 
     private
