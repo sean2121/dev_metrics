@@ -10,15 +10,18 @@ module DevMetrics
     private
 
     def write
-      File.open(file_name, "w") do |file|
-        file.puts "| " + columns.map { |col| col['label'] || col }.join(' | ') + " |"
-        file.puts "| " + (["---"] * columns.size).join(' | ') + " |"
+      is_new_file = !File.exist?(file_name) || File.size(file_name).zero?
+      File.open(file_name, "a") do |file|
+        if is_new_file
+          file.puts "| " + columns.map { |col| col['label'] || col }.join(' | ') + " |"
+          file.puts "| " + (["---"] * columns.size).join(' | ') + " |"
+        end
         file.puts "| " + build_row.join(' | ') + " |"
       end
     end
 
     def file_name
-      "output.md"
+      "dev_metrics.md"
     end
   end
 end

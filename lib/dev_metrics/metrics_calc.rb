@@ -1,26 +1,30 @@
+require 'pry'
+
 module DevMetrics
   class MetricsCalc
     attr_reader :period
 
-    def initialize(prs, period, bot_accounts:, fix_branch_names:)
+    def initialize(prs, period, excluded_accounts:, rollback_branch_prefixes:)
       @prs = prs
       @period = period
-      @bot_accounts = bot_accounts || []
-      @fix_branch_names = fix_branch_names
+      @excluded_accounts = excluded_accounts || []
+      @rollback_branch_prefixes = rollback_branch_prefixes
     end
 
     # Returns the number of PRs excluding those created by bot accounts.
     #
     # @return [Integer] Number of PRs excluding bots.
     def prs_length
-      count_prs_with_excluded_account(@prs, @bot_accounts).length
+      count_prs_with_excluded_account(@prs, @excluded_accounts).length
     end
 
     # Returns the number of rollback PRs (branch name matches fix patterns).
     #
     # @return [Integer] Number of rollback PRs.
     def rollback_prs_length
-      @prs.count { |pr| pr.head_ref_name&.match?(/^#{@fix_branch_names.join('|')}/) }
+      return 0 if @rollback_branch_prefixes.nil? || @rollback_branch_prefixes.empty?
+      regex = /^#{@rollback_branch_prefixes.join('|')}/
+      @prs.count { |pr| pr.head_ref_name&.match?(regex) }
     end
 
     # Returns the average lead time for PRs (from creation to merge) as a formatted string.
@@ -200,9 +204,9 @@ module DevMetrics
 
     private
 
-    def count_prs_with_excluded_account(prs, bot_accounts)
-      return prs if bot_accounts.empty?
-      prs.reject { |pr| bot_accounts.include?(pr.author) }
+    def count_prs_with_excluded_account(prs, excluded_accounts)
+      return prs if excluded_accounts.empty?
+      prs.reject { |pr| excluded_accounts.include?(pr.author) }
     end
 
     def format_time(seconds)

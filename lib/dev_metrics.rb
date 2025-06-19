@@ -10,13 +10,13 @@ require_relative 'dev_metrics/json'
 
 module DevMetrics
   class Config
-    attr_accessor :access_token, :repo_name, :bot_accounts, :fix_branch_names
+    attr_accessor :access_token, :repo_name, :excluded_accounts, :rollback_branch_prefixes
 
     def initialize
       @access_token = nil
       @repo_name = nil
-      @bot_accounts = []
-      @fix_branch_names = []
+      @excluded_accounts = []
+      @rollback_branch_prefixes = []
     end
 
     def load_from_yaml(path = "dev_metrics_config.yml")
@@ -33,8 +33,8 @@ module DevMetrics
 
       @access_token = config["access_token"]
       @repo_name = config["repo_name"]
-      @bot_accounts = config["bot_accounts"] || []
-      @fix_branch_names = config["fix_branch_names"] || []
+      @excluded_accounts = config["excluded_accounts"] || []
+      @rollback_branch_prefixes = config["rollback_branch_prefixes"] || []
     end
   end
 

@@ -17,8 +17,8 @@ module DevMetrics
     end
 
     def write
-      File.open(file_name, 'w') do |f|
-        f.puts columns.map { |col| col['label'] || col }.join(',')
+      File.open(file_name, 'a') do |f|  # ← append mode
+        f.puts columns.map { |col| col['label'] || col }.join(',') if File.size(file_name).zero?
         f.puts build_row.join(',')
       end
       puts "CSV data written to #{file_name}"

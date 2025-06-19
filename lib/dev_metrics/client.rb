@@ -15,8 +15,8 @@ module DevMetrics
     def initialize(config)
       @repo_name = config.repo_name
       @access_token = config.access_token
-      @bot_accounts = config.bot_accounts || []
-      @fix_branch_names = config.fix_branch_names || %w(hotfix fix rollback)
+      @excluded_accounts = config.excluded_accounts || []
+      @rollback_branch_prefixes = config.rollback_branch_prefixes || %w(hotfix fix rollback)
     end
 
     def fetch(period: Date.today)
@@ -39,12 +39,12 @@ module DevMetrics
       DevMetrics::MetricsCalc.new(
         parsed_pr_data,
         period,
-        bot_accounts: @bot_accounts,
-        fix_branch_names: @fix_branch_names
+        excluded_accounts: @excluded_accounts,
+        rollback_branch_prefixes: @rollback_branch_prefixes
       )
     end
 
-    private 
+    private
 
     def build_request(uri, body, token)
       request = Net::HTTP::Post.new(uri)
